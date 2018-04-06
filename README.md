@@ -25,4 +25,4 @@
             
     
 ### 2 配置示例
-![image](http://github.com/itmyhome2013/readme_add_pic/raw/master/images/nongshalie.jpg)
+![image](https://github.com/GongWenHua/springboot-redis-config/blob/master/img/0180407000400.png)
