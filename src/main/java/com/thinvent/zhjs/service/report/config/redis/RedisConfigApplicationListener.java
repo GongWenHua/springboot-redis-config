@@ -1,5 +1,6 @@
 package com.thinvent.zhjs.service.report.config.redis;
 
+import com.thinvent.zhjs.service.report.config.properties.boot.BOOT_TYPE;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.CachedIntrospectionResults;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -49,27 +50,35 @@ public class RedisConfigApplicationListener implements EnvironmentPostProcessor,
 
     private static final String DEFAULT_NAMES = "application";
 
-    public static final String BOOT_REDIS_PROFILE = "boot.config.redis.profiles";
+    /**
+     * boot type : local or redis
+     */
+    private static final String BOOT_TYPE_CONFIG_NAME = "boot.config.from";
+
+    /**
+     * The "profile " property name.
+     */
+    public static final String SPRING_PROFILES = "spring.profiles";
 
     /**
      * The "active profiles" property name.
      */
-    public static final String ACTIVE_PROFILES_PROPERTY = "boot.config.redis.profiles.active";
+    public static final String ACTIVE_PROFILES_PROPERTY = "spring.profiles.active";
 
     /**
      * The "includes profiles" property name.
      */
-    public static final String INCLUDE_PROFILES_PROPERTY = "boot.config.redis.profiles.include";
+    public static final String INCLUDE_PROFILES_PROPERTY = "spring.profiles.active";
 
     /**
      * The "config name" property name.
      */
-    public static final String CONFIG_NAME_PROPERTY = "boot.config.redis.profiles.config.name";
+    public static final String CONFIG_NAME_PROPERTY = "boot.config.redis.name";
 
     /**
      * The "redis host" property name.
      */
-    public static final String BOOT_REDIS_HOST = "boot.config.redis.host";
+    public static final String BOOT_REDIS_HOST = "boot.config.redis.hostname";
 
     /**
      * The "redis port" property name.
@@ -111,6 +120,11 @@ public class RedisConfigApplicationListener implements EnvironmentPostProcessor,
 
     private final ConversionService conversionService = new DefaultConversionService();
 
+    /**
+     * 启动配置位置,local 或者 redis
+     */
+    private BOOT_TYPE boot_type;
+
     @Override
     public void onApplicationEvent(ApplicationEvent event) {
         if (event instanceof ApplicationEnvironmentPreparedEvent) {
@@ -122,16 +136,19 @@ public class RedisConfigApplicationListener implements EnvironmentPostProcessor,
         }
     }
 
-    private void onApplicationEnvironmentPreparedEvent(
-
-            ApplicationEnvironmentPreparedEvent event) {
-
-        List<EnvironmentPostProcessor> postProcessors = loadPostProcessors();
-        postProcessors.add(this);
-        AnnotationAwareOrderComparator.sort(postProcessors);
-        for (EnvironmentPostProcessor postProcessor : postProcessors) {
-            postProcessor.postProcessEnvironment(event.getEnvironment(),
-                    event.getSpringApplication());
+    private void onApplicationEnvironmentPreparedEvent(ApplicationEnvironmentPreparedEvent event) {
+        /**
+         * 判断配置的启动类型，如果是local则跳过，不做任何操作，如果是redis才操作
+         */
+        boot_type = BOOT_TYPE.valueOf(event.getEnvironment().getProperty(BOOT_TYPE_CONFIG_NAME, BOOT_TYPE.LOCAL.name()).toUpperCase());
+        if (BOOT_TYPE.REDIS.equals(boot_type)) {
+            List<EnvironmentPostProcessor> postProcessors = loadPostProcessors();
+            postProcessors.add(this);
+            AnnotationAwareOrderComparator.sort(postProcessors);
+            for (EnvironmentPostProcessor postProcessor : postProcessors) {
+                postProcessor.postProcessEnvironment(event.getEnvironment(),
+                        event.getSpringApplication());
+            }
         }
     }
 
@@ -152,7 +169,7 @@ public class RedisConfigApplicationListener implements EnvironmentPostProcessor,
         if (System.getProperty(
                 CachedIntrospectionResults.IGNORE_BEANINFO_PROPERTY_NAME) == null) {
             RelaxedPropertyResolver resolver = new RelaxedPropertyResolver(environment,
-                    "spring.beaninfo.");
+                    "boot.config.redis.beaninfo.");
             Boolean ignore = resolver.getProperty("ignore", Boolean.class, Boolean.TRUE);
             System.setProperty(CachedIntrospectionResults.IGNORE_BEANINFO_PROPERTY_NAME,
                     ignore.toString());
@@ -160,7 +177,9 @@ public class RedisConfigApplicationListener implements EnvironmentPostProcessor,
     }
 
     private void onApplicationPreparedEvent(ApplicationEvent event) {
-        addPostProcessors(((ApplicationPreparedEvent) event).getApplicationContext());
+        if (BOOT_TYPE.REDIS.equals(boot_type)) {
+            addPostProcessors(((ApplicationPreparedEvent) event).getApplicationContext());
+        }
     }
 
     /**
@@ -294,8 +313,7 @@ public class RedisConfigApplicationListener implements EnvironmentPostProcessor,
 
         private boolean activatedProfiles;
 
-        private RedisSettings redisSettings = new RedisSettings();
-
+        private RedisConnectSettings redisSettings = new RedisConnectSettings();
 
         Loader(ConfigurableEnvironment environment, ResourceLoader resourceLoader) {
             this.environment = environment;
@@ -420,7 +438,7 @@ public class RedisConfigApplicationListener implements EnvironmentPostProcessor,
                             }
                         }
                         // Sometimes people put "spring.profiles: dev" in
-                        // application-dev.yml (gh-340). Arguably we should try and error
+                        // application-prod.yml (gh-340). Arguably we should try and error
                         // out on that, but we can be kind and load it anyway.
                         loadIntoGroup(group, location + name + "-" + profile + "." + ext,
                                 profile);
@@ -504,7 +522,7 @@ public class RedisConfigApplicationListener implements EnvironmentPostProcessor,
         private RedisConfigApplicationListener.SpringProfiles bindSpringProfiles(PropertySources propertySources) {
             RedisConfigApplicationListener.SpringProfiles springProfiles = new RedisConfigApplicationListener.SpringProfiles();
             RelaxedDataBinder dataBinder = new RelaxedDataBinder(springProfiles,
-            BOOT_REDIS_PROFILE);
+                    SPRING_PROFILES);
             dataBinder.bind(new PropertySourcesPropertyValues(propertySources, false));
             springProfiles.setActive(resolvePlaceholders(springProfiles.getActive()));
             springProfiles.setInclude(resolvePlaceholders(springProfiles.getInclude()));

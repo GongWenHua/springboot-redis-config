@@ -1,0 +1,11 @@
+boot.config:
+  from: redis
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password: admin
+    database: 0
+    prefix: wjw.zhjs.config  # redis prefix
+    profiles:
+      active: procdb  # like spring.profiles.active
+      config.name: report # like spring.config.name

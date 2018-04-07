@@ -1,0 +1,15 @@
+# boot from reids
+boot.config:
+  from: redis # if not set ,default value is local. so if want to boot from redis , set 'redis' is ok;
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password: admin
+    database: 0
+    prefix: wjw.zhjs.config.report  # redis prefix
+
+## boot from local
+#spring:
+#  profiles:
+#    active: "dev"
+#    include: "basic"

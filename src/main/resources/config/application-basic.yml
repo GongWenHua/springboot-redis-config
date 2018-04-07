@@ -1,0 +1,12 @@
+basic:
+    fileDownloadUrl: http://127.0.0.1:28082/
+    adaptServiceUrl: http://127.0.0.1:28090
+    threadpool:
+        corePoolsize: 50
+        maximumPoolSize: 100
+        keepAliveTime: 0
+    kafka:
+      key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value.deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      bootstrap.servers: localhost:9092
+    kafkaGroup: gwh

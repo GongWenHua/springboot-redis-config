@@ -1,5 +1,7 @@
 package com.thinvent.zhjs.service.report.config.redis;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.core.io.Resource;
 import redis.clients.jedis.Jedis;
 
@@ -15,16 +17,21 @@ import java.net.URL;
  */
 public class RedisResource implements Resource {
 
+    protected final Log logger = LogFactory.getLog(getClass());
+
     private Jedis jedis;
     private String location;
-    public RedisResource(Jedis jedis, String location){
+
+    public RedisResource(Jedis jedis, String location) {
         this.jedis = jedis;
         this.location = location;
     }
 
     @Override
     public boolean exists() {
-        return jedis.exists(location);
+        boolean isExist = jedis.exists(location);
+        logger.debug("[配置] [资源] " + this.location + (isExist ? "存在" : "不存在"));
+        return isExist;
     }
 
     @Override
@@ -79,6 +86,7 @@ public class RedisResource implements Resource {
 
     @Override
     public InputStream getInputStream() throws IOException {
+        logger.debug("[配置] [资源] " + this.location);
         return new ByteArrayInputStream(jedis.get(location).getBytes());
     }
 }

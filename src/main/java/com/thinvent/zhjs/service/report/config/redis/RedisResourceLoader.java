@@ -22,7 +22,7 @@ public class RedisResourceLoader extends DefaultResourceLoader {
 
     private String prefix = "";
 
-    RedisResourceLoader(RedisSettings redisSettings) {
+    RedisResourceLoader(RedisConnectSettings redisSettings) {
         redisFactory = new RedisFactory(
                 redisSettings.getHost(),
                 redisSettings.getPort(),
