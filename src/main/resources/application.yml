@@ -1,5 +1,6 @@
 boot.config:
   redis:
+    name: report # like spring.config.name
     host: 127.0.0.1
     port: 6379
     password: admin
@@ -8,18 +9,17 @@ boot.config:
     prefix: wjw.zhjs.config  # redis prefix
     profiles:
       active: procdb  # like spring.profiles.active
-      include: procdb # like spring.profiles.include
-      config.name: report # like spring.config.name
-report-service:
-  basic:
-      fileDownloadUrl: http://127.0.0.1:28082/
-      adaptServiceUrl: http://127.0.0.1:28090
-      threadpool:
-          corePoolsize: 50
-          maximumPoolSize: 100
-          keepAliveTime: 0
-      kafka:
-        key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
-        value.deserializer: org.apache.kafka.common.serialization.StringDeserializer
-        bootstrap.servers: localhost:9092
-      kafkaGroup: gwh
+    
+      
+basic:
+  fileDownloadUrl: http://127.0.0.1:28082/
+  adaptServiceUrl: http://127.0.0.1:28090
+  threadpool:
+      corePoolsize: 50
+      maximumPoolSize: 100
+      keepAliveTime: 0
+  kafka:
+    key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    value.deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    bootstrap.servers: localhost:9092
+  kafkaGroup: gwh
